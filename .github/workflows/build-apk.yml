@@ -20,13 +20,19 @@ jobs:
           channel: stable
           cache: true
 
-      # Upgrade Gradle ke 8.14
-      - name: Fix Gradle version
+      # Update Gradle ke 8.14
+      - name: Update Gradle
         run: |
           sed -i 's/gradle-[0-9.]*-\(all\|bin\)\.zip/gradle-8.14-\1.zip/' \
             android/gradle/wrapper/gradle-wrapper.properties
 
-      # Opt out dari Android New DSL
+      # Update Android Gradle Plugin ke 8.11.1
+      - name: Update Android Gradle Plugin
+        run: |
+          sed -i 's/com.android.application" version "[0-9.]*"/com.android.application" version "8.11.1"/' android/settings.gradle*
+          sed -i "s/com.android.tools.build:gradle:[0-9.]*/com.android.tools.build:gradle:8.11.1/" android/build.gradle*
+
+      # Gunakan legacy DSL jika diperlukan
       - name: Configure Android DSL
         run: |
           if ! grep -q "^android.newDsl=" android/gradle.properties; then
@@ -34,6 +40,14 @@ jobs:
           else
             sed -i 's/^android.newDsl=.*/android.newDsl=false/' android/gradle.properties
           fi
+
+      - name: Show versions
+        run: |
+          echo "=== Gradle ==="
+          grep distributionUrl android/gradle/wrapper/gradle-wrapper.properties || true
+
+          echo "=== AGP ==="
+          grep -R "com.android.application" android/settings.gradle* android/build.gradle* || true
 
       - name: Install dependencies
         run: flutter pub get
