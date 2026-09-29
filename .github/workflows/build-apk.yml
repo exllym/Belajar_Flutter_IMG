@@ -8,48 +8,26 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Gunakan Flutter yang lebih cocok dengan project lama
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.29.3'
           channel: stable
           cache: true
 
-      # Update Gradle ke 8.14
-      - name: Update Gradle
+      - name: Check Flutter
         run: |
-          sed -i 's/gradle-[0-9.]*-\(all\|bin\)\.zip/gradle-8.14-\1.zip/' \
-            android/gradle/wrapper/gradle-wrapper.properties
+          flutter --version
+          flutter doctor -v
 
-      # Update Android Gradle Plugin ke 8.11.1
-      - name: Update Android Gradle Plugin
-        run: |
-          sed -i 's/com.android.application" version "[0-9.]*"/com.android.application" version "8.11.1"/' android/settings.gradle*
-          sed -i "s/com.android.tools.build:gradle:[0-9.]*/com.android.tools.build:gradle:8.11.1/" android/build.gradle*
-
-      # Gunakan legacy DSL jika diperlukan
-      - name: Configure Android DSL
-        run: |
-          if ! grep -q "^android.newDsl=" android/gradle.properties; then
-            echo "android.newDsl=false" >> android/gradle.properties
-          else
-            sed -i 's/^android.newDsl=.*/android.newDsl=false/' android/gradle.properties
-          fi
-
-      - name: Show versions
-        run: |
-          echo "=== Gradle ==="
-          grep distributionUrl android/gradle/wrapper/gradle-wrapper.properties || true
-
-          echo "=== AGP ==="
-          grep -R "com.android.application" android/settings.gradle* android/build.gradle* || true
-
-      - name: Install dependencies
+      - name: Get dependencies
         run: flutter pub get
 
       - name: Build APK
@@ -60,3 +38,4 @@ jobs:
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
