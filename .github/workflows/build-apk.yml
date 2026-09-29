@@ -14,7 +14,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Gunakan Flutter yang lebih cocok dengan project lama
+      # Java 17
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      # Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -22,17 +30,25 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Check Flutter
+      # Cek Java
+      - name: Check Java
         run: |
-          flutter --version
-          flutter doctor -v
+          java -version
+          echo "JAVA_HOME=$JAVA_HOME"
 
-      - name: Get dependencies
+      # Cek Flutter
+      - name: Check Flutter
+        run: flutter doctor -v
+
+      # Install dependencies
+      - name: Flutter Pub Get
         run: flutter pub get
 
+      # Build APK
       - name: Build APK
         run: flutter build apk --release
 
+      # Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
