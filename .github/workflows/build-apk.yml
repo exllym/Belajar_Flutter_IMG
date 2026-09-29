@@ -20,6 +20,21 @@ jobs:
           channel: stable
           cache: true
 
+      # Upgrade Gradle ke 8.14
+      - name: Fix Gradle version
+        run: |
+          sed -i 's/gradle-[0-9.]*-\(all\|bin\)\.zip/gradle-8.14-\1.zip/' \
+            android/gradle/wrapper/gradle-wrapper.properties
+
+      # Opt out dari Android New DSL
+      - name: Configure Android DSL
+        run: |
+          if ! grep -q "^android.newDsl=" android/gradle.properties; then
+            echo "android.newDsl=false" >> android/gradle.properties
+          else
+            sed -i 's/^android.newDsl=.*/android.newDsl=false/' android/gradle.properties
+          fi
+
       - name: Install dependencies
         run: flutter pub get
 
